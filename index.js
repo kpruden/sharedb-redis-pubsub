@@ -1,4 +1,4 @@
-var redis = require('redis');
+var Redis = require('ioredis');
 var PubSub = require('sharedb').PubSub;
 
 // Redis pubsub driver for ShareDB.
@@ -11,12 +11,12 @@ function RedisPubSub(options) {
   PubSub.call(this, options);
   options || (options = {});
 
-  this.client = options.client || redis.createClient(options);
+  this.client = options.client || new Redis(options);
 
   // Redis doesn't allow the same connection to both listen to channels and do
   // operations. Make an extra redis connection for subscribing with the same
   // options if not provided
-  this.observer = options.observer || redis.createClient(this.client.options);
+  this.observer = options.observer || this.client.duplicate();
 
   var pubsub = this;
   this.observer.on('message', function(channel, message) {
